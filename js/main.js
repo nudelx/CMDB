@@ -18,20 +18,20 @@ d3.json("data.json", function(error, graph) {
   if (error) throw error;
 
   var link = svg.append("g")
-      .attr("class", "links")
+    .attr("class", "links")
     .selectAll("line")
     .data(graph.links)
     .enter().append("line")
-      .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
+    .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
 
   var node = svg.append("g")
-      .attr("class", "nodes")
+    .attr("class", "nodes")
     .selectAll("circle")
     .data(graph.nodes)
     .enter().append("circle")
-      .attr("r", 20)
-      .attr("fill", function(d) { return color(d.group); })
-      .call(d3.drag()
+    .attr("r", 20)
+    .attr("fill", function(d) { return color(d.group); })
+    .call(d3.drag()
           .on("start", dragstarted)
           .on("drag", dragged)
           .on("end", dragended));
@@ -77,11 +77,4 @@ function dragended(d) {
   if (!d3.event.active) simulation.alphaTarget(0.3);
   d.fx = null;
   d.fy = null;
-}
-
-if (module.hot) {
-  console.log('ssss  s')
-  module.hot.accept('.', () => {
-    console.log('sikass')
-  });
 }
