@@ -39,6 +39,9 @@ d3.json("data.json", function(error, graph) {
   node.append("title")
       .text(function(d) { return d.id; });
 
+  node.append("text")
+      .text('testststs');
+
   simulation
       .nodes(graph.nodes)
       .on("tick", ticked);
@@ -74,4 +77,11 @@ function dragended(d) {
   if (!d3.event.active) simulation.alphaTarget(0.3);
   d.fx = null;
   d.fy = null;
+}
+
+if (module.hot) {
+  console.log('ssss  s')
+  module.hot.accept('.', () => {
+    console.log('sikass')
+  });
 }
