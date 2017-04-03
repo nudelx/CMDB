@@ -22,11 +22,11 @@ d3.json("data.json", function(error, graph) {
     .selectAll("line")
     .data(graph.links)
     .enter().append("line")
-    .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
+    .attr("stroke-width", function(d) { return 2 });
 
   var node = svg.append("g")
     .attr("class", "nodes")
-    .selectAll("circle")
+    .selectAll("g")
     .data(graph.nodes)
     .enter().append("circle")
     .attr("r", 20)
