@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 
 
+console.log('start')
 var svg = d3.select("svg"),
     width = +svg.attr("width"),
     height = +svg.attr("height");

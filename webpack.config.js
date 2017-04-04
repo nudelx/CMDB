@@ -1,16 +1,26 @@
 const path = require('path');
 const webpack = require('webpack'); //to access built-in plugins
+var HtmlWebpackPlugin = require('html-webpack-plugin');
+
 
 
 module.exports = {
   entry: {
     'app': [
-      'react-hot-loader/patch',
+      'webpack-dev-server/client?http://localhost:8080',
+      'webpack/hot/only-dev-server',
       './js/main.js'
     ]},
   output: {
-    path: path.resolve(__dirname, 'js'),
-    filename: 'bundle.js'
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'bundle.js',
+    publicPath:'/'
+  },
+  devServer: {
+    hot: true,
+    inline: true,
+     contentBase: path.resolve(__dirname, 'dist'),
+     publicPath:'/'
   },
   module: {
     rules: [
@@ -25,7 +35,7 @@ module.exports = {
     ]
   },
   plugins: [
-    new webpack.optimize.UglifyJsPlugin(),
-    // new HtmlWebpackPlugin()
+    // new webpack.optimize.UglifyJsPlugin(),
+    new HtmlWebpackPlugin({ template: 'dist/t.html'})
   ]
 };
