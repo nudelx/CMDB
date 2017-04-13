@@ -4,14 +4,17 @@ import images from '../dataLayer/images'
 const animatedApp = {
 
   init: function (data) {
-    // console.log(this)
+
     const svg = d3.select("svg")
+    svg.attr('width', window.innerWidth)
+    svg.attr('height', window.innerHeight)
     const simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(function(d) { return d.id; }).strength(1)
         .distance(200))
-        .force("charge", d3.forceManyBody());
-       //  .force("center", d3.forceCenter(width / 2, height / 2));
-    // console.log(d3.forceCenter(1000 / 2, 1000 / 2))
+        .force("charge", d3.forceManyBody())
+        .force("center", d3.forceCenter(svg.attr("width") / 2, svg.attr("height") / 2));
+       //  .force("center", d3.forceCenter(svg.attr("width") / 2, svg.attr("height") / 2));
+    // console.log(d3.forceCenter(svg.attr("width") / 2, svg.attr("height") / 2))
 
     this.internal = {
        svg,
@@ -19,7 +22,11 @@ const animatedApp = {
        height: svg.attr("height"),
        color:  d3.scaleOrdinal(d3.schemeCategory20),
        simulation,
-       data
+       data,
+       imageWidth: 48,
+       imageHeight: 48,
+       titleOffsetY: 6
+
     }
     this.drawNodes()
   },
@@ -55,12 +62,12 @@ const animatedApp = {
           .attr("xlink:href", images.computer)
           .attr("x", -8)
           .attr("y", -8)
-          .attr("width", 48)
-          .attr("height", 48);
+          .attr("width", self.internal.imageWidth)
+          .attr("height", self.internal.imageHeight);
 
         node.append("text")
-          .attr("dx", ((48/2)-(title.length/2)*6.5))
-          .attr("dy", 54)
+          .attr("dx", ((self.internal.imageWidth/2)-(title.length/2)*6.5))
+          .attr("dy", self.internal.imageHeight + self.internal.titleOffsetY)
           .text(function(d) { return title });
 
         self.internal.simulation
@@ -88,9 +95,6 @@ const animatedApp = {
       //
       // node.append("text")
       //     .text('testststs');
-      self.internal.simulation
-          .nodes(graph.nodes)
-          .on("tick", ticked);
 
       self.internal.simulation.force("link")
           .links(graph.links);
