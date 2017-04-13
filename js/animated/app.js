@@ -1,8 +1,9 @@
 import * as d3 from "d3";
+import images from '../dataLayer/images'
 
 const animatedApp = {
 
-  init: function () {
+  init: function (data) {
     // console.log(this)
     const svg = d3.select("svg")
     const simulation = d3.forceSimulation()
@@ -17,7 +18,8 @@ const animatedApp = {
        width: svg.attr("width"),
        height: svg.attr("height"),
        color:  d3.scaleOrdinal(d3.schemeCategory20),
-       simulation
+       simulation,
+       data
     }
     this.drawNodes()
   },
@@ -28,48 +30,81 @@ const animatedApp = {
 
     d3.json("data.json", function(error, graph) {
       if (error) throw error;
-      // console.log('dddd', self)
+      var title = 'this is a text for example'
+      console.log(title.length)
       var link = self.internal.svg.append("g")
         .attr("class", "links")
         .selectAll("line")
         .data(graph.links)
         .enter().append("line")
         .attr("stroke-width", function(d) { return 2 });
-      //
-      var node = self.internal.svg.append("g")
-        .attr("class", "nodes")
-        .selectAll("g")
+
+      // var node = self.internal.svg.selectAll("g.node")
+      //   .data(graph.nodes)
+      //   .enter()
+      var node = self.internal.svg.selectAll(".node")
         .data(graph.nodes)
-        .enter().append("circle")
-        .attr("r", 20)
-        .attr("fill", function(d) { return self.internal.color(d.group); })
+        .enter().append("g")
+        .attr("class", "node")
         .call(d3.drag()
-              .on("start", self.dragstarted)
-              .on("drag",self.dragged)
-              .on("end", self.dragended));
+                .on("start", self.dragstarted)
+                .on("drag",self.dragged)
+                .on("end", self.dragended));
 
-      node.append("title")
-          .text(function(d) { return d.id; });
+        node.append("image")
+          .attr("xlink:href", images.computer)
+          .attr("x", -8)
+          .attr("y", -8)
+          .attr("width", 48)
+          .attr("height", 48);
 
-      node.append("text")
-          .text('testststs');
+        node.append("text")
+          .attr("dx", ((48/2)-(title.length/2)*6.5))
+          .attr("dy", 54)
+          .text(function(d) { return title });
+
+        self.internal.simulation
+            .nodes(graph.nodes)
+            .on("tick", ticked);
+
+      // var nodes = self.internal.svg.append("g")
+      //   .attr("class", "nodes")
+      //   .selectAll("g");
+      //
+      // var nodeHolder = node.selectAll("g.node")
+      //   .data(graph.nodes)
+      //   .enter()
+      //   .append()
+      //   .append("circle")
+      //   .attr("r", 20)
+      //   .attr("fill", function(d) { return self.internal.color(d.group); })
+      //   .call(d3.drag()
+      //         .on("start", self.dragstarted)
+      //         .on("drag",self.dragged)
+      //         .on("end", self.dragended));
+
+      // node.append("title")
+      //     .text(function(d) { return d.id; });
+      //
+      // node.append("text")
+      //     .text('testststs');
       self.internal.simulation
           .nodes(graph.nodes)
           .on("tick", ticked);
 
       self.internal.simulation.force("link")
           .links(graph.links);
-      //
+
       function ticked() {
         link
-            .attr("x1", function(d) { return d.source.x; })
-            .attr("y1", function(d) { return d.source.y; })
-            .attr("x2", function(d) { return d.target.x; })
-            .attr("y2", function(d) { return d.target.y; });
+            .attr("x1", function(d) { return d.source.x+24; })
+            .attr("y1", function(d) { return d.source.y+24; })
+            .attr("x2", function(d) { return d.target.x+24; })
+            .attr("y2", function(d) { return d.target.y+24; });
 
         node
-            .attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; });
+            .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
       }
     });
   },
@@ -91,11 +126,7 @@ const animatedApp = {
   },
 
   run: function (data) {
-    // console.log(this)
-    this.init()
-    // var svg = d3.select("svg"),
-    //     width = +svg.attr("width"),
-    //     height = +svg.attr("height");
+    this.init(data)
   }
 }
 
