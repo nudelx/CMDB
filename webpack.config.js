@@ -1,23 +1,22 @@
 const path = require('path');
 const webpack = require('webpack'); //to access built-in plugins
 var HtmlWebpackPlugin = require('html-webpack-plugin');
-
+console.log(process.env.NODE_ENV)
+isProd = process.env.NODE_ENV === 'production'
+var app  = isProd ? ['./js/main.js'] : ['./js/main.js', 'webpack-dev-server/client?http://localhost:8080', 'webpack/hot/only-dev-server']
 
 
 module.exports = {
   entry: {
-    'app': [
-      'webpack-dev-server/client?http://localhost:8080',
-      'webpack/hot/only-dev-server',
-      './js/main.js'
-    ]},
+    'app': app
+  },
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
     publicPath:'/'
   },
   devServer: {
-    hot: true,
+    hot: !isProd,
     inline: true,
      contentBase: path.resolve(__dirname, 'dist'),
      publicPath:'/'
@@ -35,7 +34,7 @@ module.exports = {
     ]
   },
   plugins: [
-    // new webpack.optimize.UglifyJsPlugin(),
+    new webpack.optimize.UglifyJsPlugin(),
     new HtmlWebpackPlugin({ template: 'dist/t.html'})
   ]
 };
