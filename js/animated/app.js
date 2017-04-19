@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+//import * as tip from "d3-tip";
 import images from '../dataLayer/images'
 
 const animatedApp = {
@@ -25,6 +26,8 @@ const animatedApp = {
        data,
        imageWidth: 48,
        imageHeight: 48,
+       imageOffsetX: -8,
+       imageOffsetY: -8,
        titleOffsetY: 6
 
     }
@@ -32,74 +35,77 @@ const animatedApp = {
   },
 
   drawNodes: function () {
-
     let self = this
 
-    d3.json("data.json", function(error, graph) {
-      if (error) throw error;
-      var title = 'this is a text for example'
-      console.log(title.length)
-      var link = self.internal.svg.append("g")
-        .attr("class", "links")
-        .selectAll("line")
-        .data(graph.links)
-        .enter().append("line")
-        .attr("stroke-width", function(d) { return 2 });
+    // var tip = tip.tip()
+    //   .attr('class', 'd3-tip')
+    //   .offset([-10, 0])
+    //   .html(function(d) {
+    //     return "<strong>Name:</strong> <span style='color:red'>" + d.Name + "</span>";
+    //   });
 
-      // var node = self.internal.svg.selectAll("g.node")
-      //   .data(graph.nodes)
-      //   .enter()
-      var node = self.internal.svg.selectAll(".node")
-        .data(graph.nodes)
-        .enter().append("g")
-        .attr("class", "node")
-        .call(d3.drag()
-                .on("start", self.dragstarted)
-                .on("drag",self.dragged)
-                .on("end", self.dragended));
+    //self.internal.svg.call(tip);
 
-        node.append("image")
-          .attr("xlink:href", images.computer)
-          .attr("x", -8)
-          .attr("y", -8)
-          .attr("width", self.internal.imageWidth)
-          .attr("height", self.internal.imageHeight);
+    var link = self.internal.svg.append("g")
+      .attr("class", "links")
+      .selectAll("line")
+      .data(self.internal.data.links)
+      .enter().append("line")
+      .attr("stroke-width", function(d) { return 2 });
 
-        node.append("text")
-          .attr("dx", ((self.internal.imageWidth/2)-(title.length/2)*6.5))
-          .attr("dy", self.internal.imageHeight + self.internal.titleOffsetY)
-          .text(function(d) { return title });
+    //link.append("text")
+      // .attr("dx", function(d) {
+      //   console.log(d)
+      //   console.log(d.target.x, d.source.x)
+      //   return d.target.x - d.source.x; })
+      // .attr("dy", function(d) { return d.target.y - d.source.y; })
+      //.text(function(d) { return d.type });
 
-        self.internal.simulation
-            .nodes(graph.nodes)
-            .on("tick", ticked);
+    // var text = self.internal.svg.append("g")
+    //   .attr("class", "links")
+    //   .selectAll("line")
+    //   .data(self.internal.data.links)
+    //   .enter().append("line")
+    //   .attr("stroke-width", function(d) { return 2 });
 
-      // var nodes = self.internal.svg.append("g")
-      //   .attr("class", "nodes")
-      //   .selectAll("g");
-      //
-      // var nodeHolder = node.selectAll("g.node")
-      //   .data(graph.nodes)
-      //   .enter()
-      //   .append()
-      //   .append("circle")
-      //   .attr("r", 20)
-      //   .attr("fill", function(d) { return self.internal.color(d.group); })
-      //   .call(d3.drag()
-      //         .on("start", self.dragstarted)
-      //         .on("drag",self.dragged)
-      //         .on("end", self.dragended));
+    var node = self.internal.svg.selectAll(".node")
+      .data(self.internal.data.nodes)
+      .enter().append("g")
+      .attr("class", "node")
+      .call(d3.drag()
+              .on("start", self.dragstarted)
+              .on("drag",self.dragged)
+              .on("end", self.dragended));
 
-      // node.append("title")
-      //     .text(function(d) { return d.id; });
-      //
-      // node.append("text")
-      //     .text('testststs');
+      // node.on('mouseover', tip.show)
+      //   .on('mouseout', tip.hide);
+      // node.on('mouseover', function(d) {
+      //   console.log(d)
+      //   d3.select(this).append("text")
+      //   .text(function(d) {return d.SamanageAgent__RecordType__c;})
+      // });
+
+      node.append("image")
+        .attr("xlink:href", images.computer)
+        .attr("x", self.internal.imageOffsetX)
+        .attr("y", self.internal.imageOffsetY)
+        .attr("width", self.internal.imageWidth)
+        .attr("height", self.internal.imageHeight);
+
+      node.append("text")
+        .attr("dx", function (d) { return (self.internal.imageWidth/2)-(d.Name.length/2)*6.5})
+        .attr("dy", self.internal.imageHeight + self.internal.titleOffsetY)
+        .text(function(d) { return d.Name });
+
+      self.internal.simulation
+          .nodes(self.internal.data.nodes)
+          .on("tick", ticked);
 
       self.internal.simulation.force("link")
-          .links(graph.links);
+          .links(self.internal.data.links);
 
       function ticked() {
+
         link
             .attr("x1", function(d) { return d.source.x+24; })
             .attr("y1", function(d) { return d.source.y+24; })
@@ -110,7 +116,6 @@ const animatedApp = {
             .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 
       }
-    });
   },
   dragstarted: (d) => {
     if (!d3.event.active) animatedApp.internal.simulation.alphaTarget(0.3).restart();
@@ -124,12 +129,13 @@ const animatedApp = {
   },
 
   dragended: (d) => {
-    if (!d3.event.active) animatedApp.internal.simulation.alphaTarget(0.3);
+    if (!d3.event.active) animatedApp.internal.simulation.alphaTarget(0.1);
     d.fx = null;
     d.fy = null;
   },
 
   run: function (data) {
+    console.log(data)
     this.init(data)
   }
 }
