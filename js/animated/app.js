@@ -7,38 +7,32 @@ var nameSpace = "SamanageCMDB__"
 const animatedApp = {
 
   init: function (dataset) {
-    var self = this
-    var imageWidth = 48,
-    imageHeight = 48,
-    imageOffsetX = -8,
-    imageOffsetY = -8,
-    titleOffsetY = 6,
-    popUpOffsetTop = 112,
-    popUpOffsetLeft = 240;
+    var popUpOffsetTop = 0,
+        popUpOffsetLeft = 0;
 
-    if (!window.sforce) {
-      popUpOffsetTop = 0
-      popUpOffsetLeft = 0
+    // In iframe (SF env) we have toolbars that add offsets
+    if (window.sforce) {
+      popUpOffsetTop = 112
+      popUpOffsetLeft = 240
     }
     popUpOffsetLeft += 60
 
-    var height = Math.max(
+    var h = Math.max(
       document.body.scrollHeight,
       document.body.clientHeight,
       document.body.offsetHeight,
       document.documentElement.scrollHeight,
       document.documentElement.offsetHeight,
       document.documentElement.clientHeight);
-    
-    var width = Math.max(
+
+    var w = Math.max(
       document.body.scrollWidth,
       document.body.clientWidth,
       document.body.offsetWidth,
       document.documentElement.scrollWidth,
       document.documentElement.offsetWidth,
       document.documentElement.clientWidth);
-    var w = width - 300;
-    var h = height;
+
     var linkDistance = 200;
 
     var svg = d3.select("svg").attr({"width": w,"height": h});
@@ -53,83 +47,105 @@ const animatedApp = {
         .gravity(0.03)
         .start();
 
-    var edges = svg.selectAll("line")
-      .data(dataset.links)
+    this.internal = {
+       svg,
+       force,
+       dataset,
+       imageWidth: 48,
+       imageHeight: 48,
+       imageOffsetX: -8,
+       imageOffsetY: -8,
+       titleOffsetY: 6,
+       popUpOffsetTop,
+       popUpOffsetLeft
+    }
+
+    this.drawGraph()
+  },
+  drawGraph: function () {
+    var self = this
+
+    var edges = self.internal.svg.selectAll("line")
+      .data(self.internal.dataset.links)
       .enter()
       .append("line")
-      .attr("id",function(d,i) {return 'edge'+i})
+      .attr("id", function(d, i) { return 'edge' + i })
       .attr('marker-end','url(#arrowhead)')
       .style("stroke","#ccc")
       .style("pointer-events", "none");
 
-    var nodes = svg.selectAll(".node")
-      .data(dataset.nodes)
+    var nodes = self.internal.svg.selectAll(".node")
+      .data(self.internal.dataset.nodes)
       .enter()
       .append("g")
       .attr("class", "node")
       .on('mouseenter', function (d) {
-        var tip =d3.select("body")
+        var tip = d3.select("body")
         .append("div")
         .attr('class', 'tipPopup')
         .style("position", "absolute")
         .style("z-index", "10")
-        .style("top", d.y+popUpOffsetTop+ "px")
-        .style("left", d.x+popUpOffsetLeft+"px")
+        .style("top", d.y + self.internal.popUpOffsetTop + "px")
+        .style("left", d.x + self.internal.popUpOffsetLeft + "px")
         .html(self.buildToolTip(d));
         d.tip = tip
       })
       .on('mouseleave', function (d) {
         d.tip.remove()
       })
-      .call(force.drag);
+      .call(self.internal.force.drag);
 
     nodes.append("image")
       .attr("xlink:href", function (d) {
         var recordType = d[nameSpace + "RecordType__c"] || 'default';
-        return images[recordType.toLowerCase().replace(' ', '_')]
+        return images[recordType.toLowerCase().replace(' ', '_')] || images.default
       })
-      .attr("x", imageOffsetX)
-      .attr("y", imageOffsetY)
-      .attr("width", imageWidth)
-      .attr("height", imageHeight);
+      .attr("x", self.internal.imageOffsetX)
+      .attr("y", self.internal.imageOffsetY)
+      .attr("width", self.internal.imageWidth)
+      .attr("height", self.internal.imageHeight);
 
     nodes.append("text")
-      .attr("dx", function (d) { return (imageWidth/2)-(d.Name.length/2)*6.5})
-      .attr("dy", imageHeight + titleOffsetY)
+      .attr("dx", function (d) {
+        return (self.internal.imageWidth / 2) - (d.Name.length / 2) * 6.5
+      })
+      .attr("dy", self.internal.imageHeight + self.internal.titleOffsetY)
       .text(function(d) { return d.Name });
 
-    var edgepaths = svg.selectAll(".edgepath")
-        .data(dataset.links)
+    var edgepaths = self.internal.svg.selectAll(".edgepath")
+        .data(self.internal.dataset.links)
         .enter()
         .append('path')
-        .attr({'d': function(d) {return 'M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y},
-               'class':'edgepath',
-               'fill-opacity':0,
-               'stroke-opacity':0,
-               'fill':'blue',
-               'stroke':'red',
-               'id':function(d,i) {return 'edgepath'+i}})
+        .attr({ 'd': function(d) {
+              return 'M '+ d.source.x + ' ' + d.source.y
+                  + ' L ' + d.target.x + ' ' +d.target.y
+            },
+            'class':'edgepath',
+            'fill-opacity':0,
+            'stroke-opacity':0,
+            'fill':'blue',
+            'stroke':'red',
+            'id': function(d, i) { return 'edgepath' + i }})
         .style("pointer-events", "none");
 
-    var edgelabels = svg.selectAll(".edgelabel")
-        .data(dataset.links)
+    var edgelabels = self.internal.svg.selectAll(".edgelabel")
+        .data(self.internal.dataset.links)
         .enter()
         .append('text')
         .style("pointer-events", "none")
         .attr({'class':'edgelabel',
-               'id':function(d,i){return 'edgelabel'+i},
+               'id': function(d, i) { return 'edgelabel' + i },
                'dx':80,
                'dy':0,
                'font-size':13,
                'fill':'#aaa'});
 
     edgelabels.append('textPath')
-        .attr('xlink:href',function(d,i) {return '#edgepath'+i})
+        .attr('xlink:href', function(d, i) { return '#edgepath' + i })
         .style("pointer-events", "none")
-        .text(function(d,i){return d.type});
+        .text(function(d, i){ return d.type });
 
-
-    svg.append('defs').append('marker')
+    self.internal.svg.append('defs').append('marker')
         .attr({'id':'arrowhead',
                'viewBox':'-0 -5 10 10',
                'refX':25,
@@ -141,8 +157,7 @@ const animatedApp = {
                'xoverflow':'visible'});
 
 
-    force.on("tick", function(){
-
+    self.internal.force.on("tick", function() {
         edges.attr({ "x1": function(d) { return d.source.x; },
                      "y1": function(d) { return d.source.y; },
                      "x2": function(d) { return d.target.x; },
@@ -153,11 +168,10 @@ const animatedApp = {
           return "translate(" + d.x + "," + d.y + ")";
         });
 
-        // nodelabels.attr("x", function(d) { return d.x; })
-        //           .attr("y", function(d) { return d.y; });
-
-        edgepaths.attr('d', function(d) { var path='M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y;
-                                           return path});
+        edgepaths.attr('d', function(d) {
+          var path='M '+ d.source.x +' '+ d.source.y +' L '+ d.target.x +' '+ d.target.y;
+          return path
+        });
 
     });
   },

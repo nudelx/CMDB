@@ -2,6 +2,7 @@ import * as d3 from "d3";
 import animatedApp from './animated/app'
 import dataProvider from './dataLayer/dataProvider'
 
+// for local testing - will be removed later
 // var dataset = {
 // nodes: [
 //   {Name: "Adam", id:'rrr', '__samanage1__': 'gfgfdgfdhfdhb', test: 'dddddddddddd' ,'samanage2': 'gfgfdgffrfeffdhfdhb', 'samanage3': 'gfgfd657676765865765765gfdhfdhb'},
